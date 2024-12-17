@@ -1,0 +1,43 @@
+name: Generate Release Notes
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: pnpm install simple-git marked
+
+      - name: Run Changelog Script
+        run: node ./scripts/generate-release-notes.cjs
+
+      # Step 5: Upload Output Files as Artifacts
+      - name: Upload Teams Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: output_teams
+          path: ./output/output_teams.html
+
+      - name: Upload Universum Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: output_universum
+          path: ./output/output_universum.html
+
+      # Step 6: Commit Updated Versions File (Optional)
+      - name: Commit Updated Version File
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Update last_versions.json after release notes generation"
+          file_pattern: last_versions.json
