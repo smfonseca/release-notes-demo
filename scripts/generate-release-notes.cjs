@@ -9,8 +9,6 @@ const REPO_DIR = "./repo";
 const OUTPUT_DIR = "./output";
 const LATEST_VERSIONS = process.env.LATEST_VERSIONS;
 
-console.log(LATEST_VERSIONS)
-
 if (!fs.existsSync(REPO_DIR)) fs.mkdirSync(REPO_DIR);
 if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
 

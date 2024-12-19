@@ -3,6 +3,9 @@ name: Generate Release Notes
 on:
   workflow_dispatch:
 
+env:
+  LATEST_VERSIONS: ${{ secrets.LATEST_VERSIONS }}
+
 jobs:
   generate:
     runs-on: ubuntu-latest
@@ -20,9 +23,7 @@ jobs:
         run: pnpm install simple-git marked
 
       - name: Run Changelog Script
-        env:
-          LATEST_VERSIONS: ${{ secrets.LATEST_VERSIONS }}
-        run: node ./scripts/generate-release-notes.cjs
+        run: LATEST_VERSIONS=${{ secrets.LATEST_VERSIONS }} node ./scripts/generate-release-notes.cjs
 
       # Step 5: Upload Output Files as Artifacts
       - name: Upload Teams Output
