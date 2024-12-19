@@ -6,14 +6,18 @@ const marked = require("marked");
 const REPO_URL = "https://github.com/solid-design-system/solid";
 const REPO_DIR = "./repo";
 const OUTPUT_DIR = "./output";
-const VERSION_FILE = "./last_versions.json";
+const LATEST_VERSIONS = process.env.LATEST_VERSIONS;
 
 if (!fs.existsSync(REPO_DIR)) fs.mkdirSync(REPO_DIR);
 if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
 
 let lastVersions = {};
-if (fs.existsSync(VERSION_FILE)) {
-  lastVersions = JSON.parse(fs.readFileSync(VERSION_FILE, "utf-8"));
+if (LATEST_VERSIONS) {
+  try {
+    lastVersions = JSON.parse(LATEST_VERSIONS);
+  } catch (error) {
+    console.error("Failed to parse LATEST_VERSIONS. Using an empty object.");
+  }
 }
 
 (async function main() {
@@ -60,12 +64,11 @@ if (fs.existsSync(VERSION_FILE)) {
           .replace(/<h3>(.*?)Stats<\/h3>/g, "<h5>$1Stats</h5>") // stats becomes h5
           .replace(/<h3>/g, "<h4>"); // version becomes h4
 
-
         universumHtml += `<h3>${pkg} package</h3>${transformedContent}<br />`;
 
         console.log(`Included changelog for package: ${pkg}`);
 
-        // update lastest version of each package
+        // update latest version of each package
         const latestVersion = extractLatestVersion(changelog);
         if (latestVersion) {
           lastVersions[pkg] = latestVersion;
@@ -85,12 +88,13 @@ if (fs.existsSync(VERSION_FILE)) {
     fs.writeFileSync(path.join(OUTPUT_DIR, "output_universum.html"), universumHtml, "utf-8");
 
     console.log(`Changelogs saved to ${OUTPUT_DIR}`);
-    fs.writeFileSync(VERSION_FILE, JSON.stringify(lastVersions, null, 2), "utf-8");
 
     if (fs.existsSync(REPO_DIR)) {
       fs.rmSync(REPO_DIR, { recursive: true, force: true });
       console.log("Repo folder deleted successfully.");
     }
+
+    console.log("::set-output name=latest_versions::" + JSON.stringify(lastVersions));
   } catch (error) {
     console.error("An error occurred:", error);
   }

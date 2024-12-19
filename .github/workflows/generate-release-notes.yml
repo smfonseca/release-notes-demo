@@ -20,24 +20,31 @@ jobs:
         run: pnpm install simple-git marked
 
       - name: Run Changelog Script
+        env:
+          LATEST_VERSIONS: ${{ secrets.LATEST_VERSIONS }}
         run: node ./scripts/generate-release-notes.cjs
 
       # Step 5: Upload Output Files as Artifacts
       - name: Upload Teams Output
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: output_teams
           path: ./output/output_teams.html
 
       - name: Upload Universum Output
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: output_universum
           path: ./output/output_universum.html
 
-      # Step 6: Commit Updated Versions File (Optional)
-      - name: Commit Updated Version File
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "Update last_versions.json after release notes generation"
-          file_pattern: last_versions.json
+      - name: Update LATEST_VERSIONS
+        if: success()
+        env:
+          GH_PAT: ${{ secrets.GH_NPM_TOKEN }} # Personal Access Token with required permissions
+        run: |
+          echo "Updating LATEST_VERSIONS secret..."
+          curl -X PUT \
+            -H "Authorization: Bearer $GH_NPM_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/secrets/LATEST_VERSIONS \
+            -d '{"encrypted_value":"'"$(echo ${{ steps.changelog.outputs.latest_versions }} | openssl enc -base64)"'"}'
