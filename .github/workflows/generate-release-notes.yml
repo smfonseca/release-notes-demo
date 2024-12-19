@@ -41,25 +41,24 @@ jobs:
         if: success()
         env:
           GH_PAT: ${{ secrets.GH_PATH }} # Personal Access Token with required permissions
-          run: |
-            echo "Updating LATEST_VERSIONS secret..."
-            REPO=${{ github.repository }}
-            SECRET_NAME="LATEST_VERSIONS"
+        run: |
+          echo "Updating LATEST_VERSIONS secret..."
+          REPO=${{ github.repository }}
+          SECRET_NAME="LATEST_VERSIONS"
 
-            # Fetch the repository's public key
-            PUB_KEY=$(curl -s -H "Authorization: Bearer $GH_PAT" -H "Accept: application/vnd.github+json" https://api.github.com/repos/$REPO/actions/secrets/public-key)
+          # Fetch the repository's public key
+          PUB_KEY=$(curl -s -H "Authorization: Bearer $GH_PAT" -H "Accept: application/vnd.github+json" https://api.github.com/repos/$REPO/actions/secrets/public-key)
 
-            # Extract key ID and base64-encoded public key
-            KEY_ID=$(echo "$PUB_KEY" | jq -r '.key_id')
-            PUBLIC_KEY=$(echo "$PUB_KEY" | jq -r '.key')
+          # Extract key ID and base64-encoded public key
+          KEY_ID=$(echo "$PUB_KEY" | jq -r '.key_id')
+          PUBLIC_KEY=$(echo "$PUB_KEY" | jq -r '.key')
 
-            # Encrypt the secret using the public key
-            ENCRYPTED_VALUE=$(echo "${{ steps.changelog.outputs.latest_versions }}" | openssl rsautl -encrypt -pubin -inkey <(echo "$PUBLIC_KEY") | base64)
+          # Encrypt the secret using the public key
+          ENCRYPTED_VALUE=$(echo "${{ steps.changelog.outputs.latest_versions }}" | openssl rsautl -encrypt -pubin -inkey <(echo "$PUBLIC_KEY") | base64)
 
-            # Update the secret
-            curl -X PUT \
-              -H "Authorization: Bearer $GH_PAT" \
-              -H "Accept: application/vnd.github+json" \
-              -d '{"encrypted_value":"'"$ENCRYPTED_VALUE"'", "key_id":"'"$KEY_ID"'"}' \
-              https://api.github.com/repos/$REPO/actions/secrets/$SECRET_NAME
-
+          # Update the secret
+          curl -X PUT \
+            -H "Authorization: Bearer $GH_PAT" \
+            -H "Accept: application/vnd.github+json" \
+            -d '{"encrypted_value":"'"$ENCRYPTED_VALUE"'", "key_id":"'"$KEY_ID"'"}' \
+            https://api.github.com/repos/$REPO/actions/secrets/$SECRET_NAME
