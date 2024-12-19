@@ -35,6 +35,7 @@ if (LATEST_VERSIONS) {
 
     let teamsHtml = "<html><body>";
     let universumHtml = "<html><body><h2>Development</h2>";
+    let hasChanges = false;
 
     for (const pkg of packages) {
       const changelogPath = path.join(packagesDir, pkg, "CHANGELOG.md");
@@ -48,6 +49,7 @@ if (LATEST_VERSIONS) {
       const latestChanges = extractChanges(changelog, lastVersions[pkg]);
 
       if (latestChanges && latestChanges.trim()) {
+        hasChanges = true;
         let htmlContent = marked.parse(latestChanges);
 
         // Combine consecutive headers: <h2>Version</h2><h3>Next Header</h3> -> <h3>Version Next Header</h3>
@@ -61,9 +63,9 @@ if (LATEST_VERSIONS) {
 
         // For universum file
         let transformedContent = htmlContent
-          .replace(/<h2>/g, "<h3>") // package name becomes h3
-          .replace(/<h3>(.*?)Stats<\/h3>/g, "<h5>$1Stats</h5>") // stats becomes h5
-          .replace(/<h3>/g, "<h4>"); // version becomes h4
+          .replace(/<h2>/g, "<h3>") // Package name becomes h3
+          .replace(/<h3>(.*?)Stats<\/h3>/g, "<h5>$1Stats</h5>") // Stats becomes h5
+          .replace(/<h3>/g, "<h4>"); // Version becomes h4
 
         universumHtml += `<h3>${pkg} package</h3>${transformedContent}<br />`;
 
@@ -79,25 +81,28 @@ if (LATEST_VERSIONS) {
       }
     }
 
-    // For universum we include the starting header for the design part
-    universumHtml += "<h2>Design</h2></body></html>";
+    if (hasChanges) {
+      // Finalize HTML content
+      universumHtml += "<h2>Design</h2></body></html>";
+      teamsHtml += "</body></html>";
 
-    // For teams no further information is required
-    teamsHtml += "</body></html>";
+      // Save the HTML files
+      fs.writeFileSync(path.join(OUTPUT_DIR, "output_teams.html"), teamsHtml, "utf-8");
+      fs.writeFileSync(path.join(OUTPUT_DIR, "output_universum.html"), universumHtml, "utf-8");
 
-    // Save the HTML files
-    fs.writeFileSync(path.join(OUTPUT_DIR, "output_teams.html"), teamsHtml, "utf-8");
-    fs.writeFileSync(path.join(OUTPUT_DIR, "output_universum.html"), universumHtml, "utf-8");
+      console.log(`Changelogs saved to ${OUTPUT_DIR}`);
 
-    console.log(`Changelogs saved to ${OUTPUT_DIR}`);
+      // Output updated latest_versions for GitHub Actions
+      console.log("::set-output name=latest_versions::" + JSON.stringify(lastVersions));
+    } else {
+      console.log("No changes found. Skipping file creation and LATEST_VERSIONS update.");
+    }
 
+    // Cleanup: Delete the repo directory
     if (fs.existsSync(REPO_DIR)) {
       fs.rmSync(REPO_DIR, { recursive: true, force: true });
       console.log("Repo folder deleted successfully.");
     }
-
-    // Output updated latest_versions for GitHub Actions
-    console.log("::set-output name=latest_versions::" + JSON.stringify(lastVersions));
   } catch (error) {
     console.error("An error occurred:", error);
   }

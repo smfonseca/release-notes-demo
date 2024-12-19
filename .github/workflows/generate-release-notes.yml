@@ -23,23 +23,27 @@ jobs:
         run: pnpm install simple-git marked
 
       - name: Run Changelog Script
-        run: LATEST_VERSIONS=${{ secrets.LATEST_VERSIONS }} node ./scripts/generate-release-notes.cjs
+        id: changelog
+        env:
+          LATEST_VERSIONS: ${{ secrets.LATEST_VERSIONS }}
+        run: node ./scripts/generate-release-notes.cjs
 
-      # Step 5: Upload Output Files as Artifacts
       - name: Upload Teams Output
+        if: steps.changelog.outputs.has_changes == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: output_teams
           path: ./output/output_teams.html
 
       - name: Upload Universum Output
+        if: steps.changelog.outputs.has_changes == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: output_universum
           path: ./output/output_universum.html
 
       - name: Update LATEST_VERSIONS Secret
-        if: success()
+        if: steps.changelog.outputs.has_changes == 'true'
         env:
           LATEST_VERSIONS: ${{ steps.changelog.outputs.latest_versions }}
           GH_TOKEN: ${{ secrets.GH_PAT }}
