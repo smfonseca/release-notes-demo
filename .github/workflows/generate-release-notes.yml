@@ -53,8 +53,15 @@ jobs:
           KEY_ID=$(echo "$PUB_KEY" | jq -r '.key_id')
           PUBLIC_KEY=$(echo "$PUB_KEY" | jq -r '.key')
 
-          # Encrypt the secret using the public key
-          ENCRYPTED_VALUE=$(echo "${{ steps.changelog.outputs.latest_versions }}" | openssl rsautl -encrypt -pubin -inkey <(echo "$PUBLIC_KEY") | base64)
+          # Decode the public key to a PEM format
+          echo "$PUBLIC_KEY" | base64 -d > public_key.pem
+
+          # Encrypt the secret using the decoded public key
+          echo "${{ steps.changelog.outputs.latest_versions }}" | \
+            openssl rsautl -encrypt -pubin -inkey public_key.pem | base64 > encrypted_value.txt
+
+          # Read the encrypted value
+          ENCRYPTED_VALUE=$(cat encrypted_value.txt)
 
           # Update the secret
           curl -X PUT \
