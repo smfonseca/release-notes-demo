@@ -37,35 +37,10 @@ jobs:
           name: output_universum
           path: ./output/output_universum.html
 
-      - name: Update LATEST_VERSIONS
+      - name: Update LATEST_VERSIONS Secret
         if: success()
         env:
-          GH_PAT: ${{ secrets.GH_PATH }} # Personal Access Token with required permissions
+          LATEST_VERSIONS: ${{ steps.changelog.outputs.latest_versions }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          echo "Updating LATEST_VERSIONS secret..."
-          REPO=${{ github.repository }}
-          SECRET_NAME="LATEST_VERSIONS"
-
-          # Fetch the repository's public key
-          PUB_KEY=$(curl -s -H "Authorization: Bearer $GH_PAT" -H "Accept: application/vnd.github+json" https://api.github.com/repos/$REPO/actions/secrets/public-key)
-
-          # Extract key ID and base64-encoded public key
-          KEY_ID=$(echo "$PUB_KEY" | jq -r '.key_id')
-          PUBLIC_KEY=$(echo "$PUB_KEY" | jq -r '.key')
-
-          # Decode the public key to a PEM format
-          echo "$PUBLIC_KEY" | base64 -d > public_key.pem
-
-          # Encrypt the secret using the decoded public key
-          echo "${{ steps.changelog.outputs.latest_versions }}" | \
-            openssl rsautl -encrypt -pubin -inkey public_key.pem | base64 > encrypted_value.txt
-
-          # Read the encrypted value
-          ENCRYPTED_VALUE=$(cat encrypted_value.txt)
-
-          # Update the secret
-          curl -X PUT \
-            -H "Authorization: Bearer $GH_PAT" \
-            -H "Accept: application/vnd.github+json" \
-            -d '{"encrypted_value":"'"$ENCRYPTED_VALUE"'", "key_id":"'"$KEY_ID"'"}' \
-            https://api.github.com/repos/$REPO/actions/secrets/$SECRET_NAME
+          echo "$LATEST_VERSIONS" | gh secret set LATEST_VERSIONS --app actions --body -
