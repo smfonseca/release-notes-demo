@@ -2,11 +2,14 @@ const fs = require("fs");
 const path = require("path");
 const simpleGit = require("simple-git");
 const marked = require("marked");
+require('dotenv').config()
 
 const REPO_URL = "https://github.com/solid-design-system/solid";
 const REPO_DIR = "./repo";
 const OUTPUT_DIR = "./output";
 const LATEST_VERSIONS = process.env.LATEST_VERSIONS;
+
+console.log(LATEST_VERSIONS)
 
 if (!fs.existsSync(REPO_DIR)) fs.mkdirSync(REPO_DIR);
 if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
@@ -49,16 +52,16 @@ if (LATEST_VERSIONS) {
       if (latestChanges && latestChanges.trim()) {
         let htmlContent = marked.parse(latestChanges);
 
-        // we combine consecutive headers => <h2>Version</h2><h3>Next Header</h3> -> <h2>Version Next Header</h2>
+        // Combine consecutive headers: <h2>Version</h2><h3>Next Header</h3> -> <h3>Version Next Header</h3>
         htmlContent = htmlContent.replace(
           /<h2>(.*?)<\/h2>\s*<h3>(.*?)<\/h3>/g,
           "<h3>$1 $2</h3>"
         );
 
-        // teams only supports h1 to h3 headers, we can keep original structure
+        // For teams file
         teamsHtml += `<h2>${pkg} package</h2>${htmlContent}<br />`;
 
-        // universum headers can go from h1 to h6 and needs to be adjusted
+        // For universum file
         let transformedContent = htmlContent
           .replace(/<h2>/g, "<h3>") // package name becomes h3
           .replace(/<h3>(.*?)Stats<\/h3>/g, "<h5>$1Stats</h5>") // stats becomes h5
@@ -68,7 +71,7 @@ if (LATEST_VERSIONS) {
 
         console.log(`Included changelog for package: ${pkg}`);
 
-        // update latest version of each package
+        // Update the latest version of each package
         const latestVersion = extractLatestVersion(changelog);
         if (latestVersion) {
           lastVersions[pkg] = latestVersion;
@@ -78,12 +81,13 @@ if (LATEST_VERSIONS) {
       }
     }
 
-    // for universum we include the starting header for the design part
+    // For universum we include the starting header for the design part
     universumHtml += "<h2>Design</h2></body></html>";
 
-    // for teams no further information is required
+    // For teams no further information is required
     teamsHtml += "</body></html>";
 
+    // Save the HTML files
     fs.writeFileSync(path.join(OUTPUT_DIR, "output_teams.html"), teamsHtml, "utf-8");
     fs.writeFileSync(path.join(OUTPUT_DIR, "output_universum.html"), universumHtml, "utf-8");
 
@@ -94,6 +98,7 @@ if (LATEST_VERSIONS) {
       console.log("Repo folder deleted successfully.");
     }
 
+    // Output updated latest_versions for GitHub Actions
     console.log("::set-output name=latest_versions::" + JSON.stringify(lastVersions));
   } catch (error) {
     console.error("An error occurred:", error);
@@ -112,9 +117,16 @@ function extractChanges(changelog, lastVersion) {
   });
 
   let resultSections = [];
+  let reachedLastVersion = false;
+
   for (let section of validSections) {
-    if (lastVersion && section.includes(`## ${lastVersion}`)) {
-      break;
+    const versionMatch = section.match(/^##\s*([\d.]+(?:-[\w.]+)?)/);
+    if (versionMatch) {
+      const version = versionMatch[1];
+      if (version === lastVersion) {
+        reachedLastVersion = true;
+        break;
+      }
     }
 
     const lines = section.trim().split("\n").slice(1);
@@ -124,14 +136,13 @@ function extractChanges(changelog, lastVersion) {
     }
   }
 
-  return resultSections.join("\n\n").trim();
+  return reachedLastVersion ? resultSections.join("\n\n").trim() : "";
 }
 
 /**
  * Extract the latest version from the changelog.
  */
 function extractLatestVersion(changelog) {
-  // versions from changesets are always an h2 and can include a pre-release tag
   const match = changelog.match(/^##\s*([\d.]+(?:-[\w.]+)?)/m);
   return match ? match[1] : null;
 }
