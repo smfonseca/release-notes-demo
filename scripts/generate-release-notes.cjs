@@ -131,7 +131,7 @@ function extractChanges(changelog, lastVersion) {
  * Extract the latest version from the changelog.
  */
 function extractLatestVersion(changelog) {
-  // versions from changesets are always an h2
-  const match = changelog.match(/^##\s*([\d.]+)/m);
+  // versions from changesets are always an h2 and can include a pre-release tag
+  const match = changelog.match(/^##\s*([\d.]+(?:-[\w.]+)?)/m);
   return match ? match[1] : null;
 }
