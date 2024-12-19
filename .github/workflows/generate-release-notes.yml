@@ -40,7 +40,7 @@ jobs:
       - name: Update LATEST_VERSIONS
         if: success()
         env:
-          GH_PAT: ${{ secrets.GH_NPM_TOKEN }} # Personal Access Token with required permissions
+          GH_PAT: ${{ secrets.GH_PATH }} # Personal Access Token with required permissions
         run: |
           echo "Updating LATEST_VERSIONS secret..."
           curl -X PUT \
