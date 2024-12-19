@@ -1,4 +1,6 @@
 /node_modules
 /repo
+/output
 
 .DS_Store
+.env

@@ -91,11 +91,14 @@ if (LATEST_VERSIONS) {
       fs.writeFileSync(path.join(OUTPUT_DIR, "output_universum.html"), universumHtml, "utf-8");
 
       console.log(`Changelogs saved to ${OUTPUT_DIR}`);
-
-      // Output updated latest_versions for GitHub Actions
-      console.log("::set-output name=latest_versions::" + JSON.stringify(lastVersions));
     } else {
-      console.log("No changes found. Skipping file creation and LATEST_VERSIONS update.");
+      console.log("No changes found in any package. Skipping file creation.");
+    }
+
+    // Output updated latest_versions and has_changes for GitHub Actions
+    console.log("::set-output name=has_changes::" + hasChanges.toString());
+    if (hasChanges) {
+      console.log("::set-output name=latest_versions::" + JSON.stringify(lastVersions));
     }
 
     // Cleanup: Delete the repo directory
