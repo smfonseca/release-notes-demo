@@ -22,6 +22,16 @@ jobs:
       - name: Install Dependencies
         run: pnpm install simple-git marked
 
+      - name: Debug LATEST_VERSIONS
+        run: |
+          if [ -n "$LATEST_VERSIONS" ]; then
+            echo "LATEST_VERSIONS is set and has ${#LATEST_VERSIONS} characters."
+          else
+            echo "LATEST_VERSIONS is empty or undefined."
+          fi
+        env:
+          LATEST_VERSIONS: ${{ secrets.LATEST_VERSIONS }}
+
       - name: Run Changelog Script
         id: changelog
         env:
@@ -49,4 +59,5 @@ jobs:
           LATEST_VERSIONS: ${{ steps.changelog.outputs.latest_versions }}
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          echo "$LATEST_VERSIONS" | gh secret set LATEST_VERSIONS --app actions --body -
+          cleaned_versions=$(echo "$LATEST_VERSIONS" | tr -d '\n' | tr -d '\r' | xargs)
+          echo "$cleaned_versions" | gh secret set LATEST_VERSIONS --app actions --body -
