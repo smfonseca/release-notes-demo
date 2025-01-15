@@ -59,5 +59,14 @@ jobs:
           LATEST_VERSIONS: ${{ steps.changelog.outputs.latest_versions }}
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
+          # Remove newlines, carriage returns, and trim spaces
           cleaned_versions=$(echo "$LATEST_VERSIONS" | tr -d '\n' | tr -d '\r' | xargs)
+          echo "Cleaned LATEST_VERSIONS: '$cleaned_versions'"
           echo "$cleaned_versions" | gh secret set LATEST_VERSIONS --app actions --body -
+
+      - name: Verify Updated Secret
+        run: |
+          echo "Verifying updated LATEST_VERSIONS"
+          echo "$LATEST_VERSIONS" | cat -A
+        env:
+          LATEST_VERSIONS: ${{ secrets.LATEST_VERSIONS }}
