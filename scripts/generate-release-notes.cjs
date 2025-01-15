@@ -99,7 +99,7 @@ if (LATEST_VERSIONS) {
     // Output updated latest_versions and has_changes for GitHub Actions
     console.log("::set-output name=has_changes::" + hasChanges.toString());
     if (hasChanges) {
-      console.log("::set-output name=latest_versions::" + `'${JSON.stringify(lastVersions)}'`);
+      console.log("::set-output name=latest_versions::" + JSON.stringify(lastVersions));
     }
 
     // Cleanup: Delete the repo directory
