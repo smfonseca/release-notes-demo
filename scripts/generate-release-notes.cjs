@@ -16,7 +16,14 @@ let lastVersions = {};
 console.log('LATEST VERSIONS =>', LATEST_VERSIONS)
 if (LATEST_VERSIONS) {
   try {
-    lastVersions = JSON.parse(LATEST_VERSIONS);
+    // lastVersions = JSON.parse(LATEST_VERSIONS);
+    const pairs = LATEST_VERSIONS.split(','); // Split by commas
+    pairs.forEach(pair => {
+      const [pkg, version] = pair.split(':'); // Split by colon
+      if (pkg && version) {
+        lastVersions[pkg.trim()] = version.trim();
+      }
+    });
   } catch (error) {
     console.error("Failed to parse LATEST_VERSIONS", error.message);
   }
@@ -99,7 +106,11 @@ if (LATEST_VERSIONS) {
     // Output updated latest_versions and has_changes for GitHub Actions
     console.log("::set-output name=has_changes::" + hasChanges.toString());
     if (hasChanges) {
-      console.log("::set-output name=latest_versions::" + JSON.stringify(lastVersions));
+      // console.log("::set-output name=latest_versions::" + JSON.stringify(lastVersions));
+      const latestVersionsString = Object.entries(lastVersions)
+        .map(([pkg, version]) => `${pkg}:${version}`)
+        .join(',');
+      console.log("::set-output name=latest_versions::" + latestVersionsString);
     }
 
     // Cleanup: Delete the repo directory

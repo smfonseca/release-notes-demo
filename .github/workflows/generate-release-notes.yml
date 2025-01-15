@@ -22,30 +22,12 @@ jobs:
       - name: Install Dependencies
         run: pnpm install simple-git marked
 
-      - name: Validate Raw Secret
-        env:
-          LATEST_VERSIONS: ${{ secrets.LATEST_VERSIONS }}
-        run: |
-          if [ -n "$LATEST_VERSIONS" ]; then
-            echo "LATEST_VERSIONS is set and has ${#LATEST_VERSIONS} characters."
-          else
-            echo "LATEST_VERSIONS is empty or undefined."
-            exit 1
-          fi
-
-      - name: Validate JSON Format
-        env:
-          LATEST_VERSIONS: ${{ secrets.LATEST_VERSIONS }}
-        run: |
-          echo "$LATEST_VERSIONS" | jq '.' || exit 1
-
       - name: Run Changelog Script
         id: changelog
         env:
           LATEST_VERSIONS: ${{ secrets.LATEST_VERSIONS }}
         run: |
-          LATEST_VERSIONS=${{ secrets.LATEST_VERSIONS }} node ./scripts/generate-release-notes.cjs
-          echo "$LATEST_VERSIONS"
+          node ./scripts/generate-release-notes.cjs
 
       - name: Upload Teams Output
         if: steps.changelog.outputs.has_changes == 'true'
@@ -67,5 +49,4 @@ jobs:
           LATEST_VERSIONS: ${{ steps.changelog.outputs.latest_versions }}
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          cleaned_json=$(echo "$LATEST_VERSIONS" | jq -c '.')
-          echo "$cleaned_json" | gh secret set LATEST_VERSIONS --app actions --body -
+          echo "$LATEST_VERSIONS" | gh secret set LATEST_VERSIONS --app actions --body -
