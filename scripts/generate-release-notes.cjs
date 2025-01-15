@@ -13,6 +13,7 @@ if (!fs.existsSync(REPO_DIR)) fs.mkdirSync(REPO_DIR);
 if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
 
 let lastVersions = {};
+console.log('LATEST VERSIONS =>', LATEST_VERSIONS)
 if (LATEST_VERSIONS) {
   try {
     lastVersions = JSON.parse(LATEST_VERSIONS);
