@@ -18,7 +18,7 @@ if (LATEST_VERSIONS) {
   try {
     lastVersions = JSON.parse(LATEST_VERSIONS);
   } catch (error) {
-    console.error("Failed to parse LATEST_VERSIONS");
+    console.error("Failed to parse LATEST_VERSIONS", error.message);
   }
 }
 

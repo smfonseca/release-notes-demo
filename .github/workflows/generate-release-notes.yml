@@ -50,8 +50,4 @@ jobs:
           LATEST_VERSIONS: ${{ steps.changelog.outputs.latest_versions }}
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          echo "$LATEST_VERSIONS" | gh secret set LATEST_VERSIONS --app actions --body -
-
-      - name: Validate Secret Usage
-        run: |
-          echo "${{ secrets.LATEST_VERSIONS }}"
+          echo "$LATEST_VERSIONS" | jq -c '.' | gh secret set LATEST_VERSIONS --app actions --body -
