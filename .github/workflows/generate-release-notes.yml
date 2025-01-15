@@ -55,12 +55,12 @@ jobs:
 
       - name: Update LATEST_VERSIONS Secret
         if: steps.changelog.outputs.has_changes == 'true'
-        uses: lannonbr/set-action-secret@v1.0.0
+        uses: hmanzur/actions-set-secret@v2.0.0
         with:
-          secret_name: LATEST_VERSIONS
-          secret_value: ${{ steps.changelog.outputs.latest_versions }}
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
+          name: LATEST_VERSIONS
+          value: ${{ steps.changelog.outputs.latest_versions }}
+          repository: smfonseca/release-notes-demo
+          token: ${{ secrets.GH_PAT }}
         # env:
         #   LATEST_VERSIONS: ${{ steps.changelog.outputs.latest_versions }}
         #   GH_TOKEN: ${{ secrets.GH_PAT }}
