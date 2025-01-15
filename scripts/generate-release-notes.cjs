@@ -4,7 +4,7 @@ const simpleGit = require("simple-git");
 const marked = require("marked");
 require('dotenv').config()
 
-const REPO_URL = "https://github.com/solid-design-system/solid";
+const REPO_URL = "https://github.com/smfonseca/monorepo-changesets-demo";
 const REPO_DIR = "./repo";
 const OUTPUT_DIR = "./output";
 const LATEST_VERSIONS = process.env.LATEST_VERSIONS;
