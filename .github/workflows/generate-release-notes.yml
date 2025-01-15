@@ -27,7 +27,7 @@ jobs:
         env:
           LATEST_VERSIONS: ${{ secrets.LATEST_VERSIONS }}
         run: |
-          node ./scripts/generate-release-notes.cjs
+          LATEST_VERSIONS=${{ secrets.LATEST_VERSIONS }} node ./scripts/generate-release-notes.cjs
 
       - name: Upload Teams Output
         if: steps.changelog.outputs.has_changes == 'true'
