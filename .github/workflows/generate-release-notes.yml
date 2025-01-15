@@ -52,3 +52,10 @@ jobs:
         run: |
           cleaned_json=$(echo "$LATEST_VERSIONS" | jq -c '.')
           echo "$cleaned_json" | gh secret set LATEST_VERSIONS --app actions --body -
+
+      - name: Debug JSON Format
+        env:
+          LATEST_VERSIONS: ${{ secrets.LATEST_VERSIONS }}
+        run: |
+          echo "LATEST_VERSIONS: $LATEST_VERSIONS"
+          echo "$LATEST_VERSIONS" | jq '.'
