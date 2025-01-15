@@ -17,7 +17,7 @@ if (LATEST_VERSIONS) {
   try {
     lastVersions = JSON.parse(LATEST_VERSIONS);
   } catch (error) {
-    console.error("Failed to parse LATEST_VERSIONS. Using an empty object.");
+    console.error("Failed to parse LATEST_VERSIONS");
   }
 }
 
@@ -98,7 +98,7 @@ if (LATEST_VERSIONS) {
     // Output updated latest_versions and has_changes for GitHub Actions
     console.log("::set-output name=has_changes::" + hasChanges.toString());
     if (hasChanges) {
-      console.log("::set-output name=latest_versions::" + JSON.stringify(lastVersions));
+      console.log("::set-output name=latest_versions::" + `'${JSON.stringify(lastVersions)}'`);
     }
 
     // Cleanup: Delete the repo directory
