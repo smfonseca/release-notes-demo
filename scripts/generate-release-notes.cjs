@@ -13,13 +13,14 @@ if (!fs.existsSync(REPO_DIR)) fs.mkdirSync(REPO_DIR);
 if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
 
 let lastVersions = {};
-console.log('LATEST VERSIONS =>', LATEST_VERSIONS)
+
 if (LATEST_VERSIONS) {
   try {
-    // lastVersions = JSON.parse(LATEST_VERSIONS);
-    const pairs = LATEST_VERSIONS.split(','); // Split by commas
-    pairs.forEach(pair => {
-      const [pkg, version] = pair.split(':'); // Split by colon
+    const versions = LATEST_VERSIONS.split(',');
+
+    versions.forEach(packageAndVersion => {
+      const [pkg, version] = packageAndVersion.split(':');
+
       if (pkg && version) {
         lastVersions[pkg.trim()] = version.trim();
       }
@@ -106,7 +107,6 @@ if (LATEST_VERSIONS) {
     // Output updated latest_versions and has_changes for GitHub Actions
     console.log("::set-output name=has_changes::" + hasChanges.toString());
     if (hasChanges) {
-      // console.log("::set-output name=latest_versions::" + JSON.stringify(lastVersions));
       const latestVersionsString = Object.entries(lastVersions)
         .map(([pkg, version]) => `${pkg}:${version}`)
         .join(',');
