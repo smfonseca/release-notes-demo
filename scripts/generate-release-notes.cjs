@@ -42,6 +42,27 @@ if (LATEST_VERSIONS) {
     const packagesDir = path.join(REPO_DIR, "packages");
     const packages = fs.readdirSync(packagesDir);
 
+    for (const pkg of packages) {
+  if (!lastVersions[pkg]) {
+    const changelogPath = path.join(packagesDir, pkg, "CHANGELOG.md");
+
+    if (fs.existsSync(changelogPath)) {
+      const changelog = fs.readFileSync(changelogPath, "utf-8");
+      const firstVersion = extractLatestVersion(changelog);
+
+      if (firstVersion) {
+        lastVersions[pkg] = firstVersion;
+      } else {
+        console.log(`No version found in changelog for package ${pkg}. Skipping.`);
+        lastVersions[pkg] = null; // Mark as no version found
+      }
+    } else {
+      console.log(`No changelog found for package ${pkg}. Skipping.`);
+      lastVersions[pkg] = null; // Mark as no changelog
+    }
+  }
+}
+
     let teamsHtml = "<html><body>";
     let universumHtml = "<html><body><h2>Development</h2>";
     let hasChanges = false;
@@ -60,6 +81,7 @@ if (LATEST_VERSIONS) {
       if (latestChanges && latestChanges.trim()) {
         hasChanges = true;
         let htmlContent = marked.parse(latestChanges);
+        const pkgName = pkg.charAt(0).toUpperCase() + pkg.slice(1);
 
         // Combine consecutive headers: <h2>Version</h2><h3>Next Header</h3> -> <h3>Version Next Header</h3>
         htmlContent = htmlContent.replace(
@@ -68,7 +90,7 @@ if (LATEST_VERSIONS) {
         );
 
         // For teams file
-        teamsHtml += `<h2>${pkg} package</h2>${htmlContent}<br />`;
+        teamsHtml += `<h2>${pkgName} Package</h2>${htmlContent}<br />`;
 
         // For universum file
         let transformedContent = htmlContent
@@ -76,9 +98,9 @@ if (LATEST_VERSIONS) {
           .replace(/<h3>(.*?)Stats<\/h3>/g, "<h5>$1Stats</h5>") // Stats becomes h5
           .replace(/<h3>/g, "<h4>"); // Version becomes h4
 
-        universumHtml += `<h3>${pkg} package</h3>${transformedContent}<br />`;
+        universumHtml += `<h3>${pkgName} Package</h3>${transformedContent}<br />`;
 
-        console.log(`Included changelog for package: ${pkg}`);
+        console.log(`Included changelog for package: ${pkgName}`);
 
         // Update the latest version of each package
         const latestVersion = extractLatestVersion(changelog);
