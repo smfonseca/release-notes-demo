@@ -36,13 +36,6 @@ jobs:
           name: output_teams
           path: ./output/output_teams.html
 
-      - name: Upload Universum Output
-        if: steps.changelog.outputs.has_changes == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: output_universum
-          path: ./output/output_universum.html
-
       - name: Update LATEST_VERSIONS Secret
         if: steps.changelog.outputs.has_changes == 'true'
         uses: mmoyaferrer/set-github-variable@v1.0.0

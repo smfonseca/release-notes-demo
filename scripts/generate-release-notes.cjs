@@ -4,7 +4,7 @@ const simpleGit = require("simple-git");
 const marked = require("marked");
 require("dotenv").config();
 
-const REPO_URL = "https://github.com/smfonseca/monorepo-changesets-demo";
+const REPO_URL = "https://github.com/solid-design-system/solid";
 const REPO_DIR = "./repo";
 const OUTPUT_DIR = "./output";
 const LATEST_VERSIONS = process.env.LATEST_VERSIONS;
@@ -69,7 +69,6 @@ const initializePackageVersions = (packages, packagesDir) => {
 
 const prepareOutputFiles = (packages, packagesDir) => {
   let teamsHtml = "<html><body>";
-  let universumHtml = "<html><body><h2>Development</h2>";
   let hasChanges = false;
 
   packages.forEach((pkg) => {
@@ -92,13 +91,6 @@ const prepareOutputFiles = (packages, packagesDir) => {
 
       teamsHtml += `<h2>${pkgName} Package</h2>${htmlContent}<br />`;
 
-      let transformedContent = htmlContent
-        .replace(/<h2>/g, "<h3>")
-        .replace(/<h3>(.*?)Stats<\/h3>/g, "<h5>$1Stats</h5>")
-        .replace(/<h3>/g, "<h4>");
-
-      universumHtml += `<h3>${pkgName} Package</h3>${transformedContent}<br />`;
-
       console.log(`Included changelog for package: ${pkgName}`);
 
       const latestVersion = extractLatestVersion(changelog);
@@ -110,16 +102,14 @@ const prepareOutputFiles = (packages, packagesDir) => {
     }
   });
 
-  universumHtml += "<h2>Design</h2></body></html>";
   teamsHtml += "</body></html>";
 
-  return { teamsHtml, universumHtml, hasChanges };
+  return { teamsHtml, hasChanges };
 }
 
-const saveOutputFiles = (teamsHtml, universumHtml, hasChanges) => {
+const saveOutputFiles = (teamsHtml, hasChanges) => {
   if (hasChanges) {
     fs.writeFileSync(path.join(OUTPUT_DIR, "output_teams.html"), teamsHtml, "utf-8");
-    fs.writeFileSync(path.join(OUTPUT_DIR, "output_universum.html"), universumHtml, "utf-8");
     console.log(`Changelogs saved to ${OUTPUT_DIR}`);
   } else {
     console.log("No changes found in any package. Skipping file creation.");
@@ -203,9 +193,9 @@ const capitalize = (str) => {
 
     initializePackageVersions(packages, packagesDir);
 
-    const { teamsHtml, universumHtml, hasChanges } = prepareOutputFiles(packages, packagesDir);
+    const { teamsHtml, hasChanges } = prepareOutputFiles(packages, packagesDir);
 
-    saveOutputFiles(teamsHtml, universumHtml, hasChanges);
+    saveOutputFiles(teamsHtml, hasChanges);
     setGitHubActionsOutputs(hasChanges, lastVersions);
 
     cleanup(REPO_DIR);
