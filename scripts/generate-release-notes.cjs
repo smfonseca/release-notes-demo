@@ -47,25 +47,30 @@ const getPackages = (packagesDir) => {
 
 const initializePackageVersions = (packages, packagesDir) => {
   packages.forEach((pkg) => {
-    if (!lastVersions[pkg]) {
-      const changelogPath = path.join(packagesDir, pkg, "CHANGELOG.md");
-      if (fs.existsSync(changelogPath)) {
-        const changelog = fs.readFileSync(changelogPath, "utf-8");
-        const firstVersion = extractLatestVersion(changelog);
-
-        if (firstVersion) {
-          lastVersions[pkg] = firstVersion;
-        } else {
-          console.log(`No version found in changelog for package ${pkg}. Skipping.`);
-          lastVersions[pkg] = null;
-        }
-      } else {
-        console.log(`No changelog found for package ${pkg}. Skipping.`);
-        lastVersions[pkg] = null;
-      }
+    if (lastVersions[pkg]) {
+      return;
     }
+
+    const changelogPath = path.join(packagesDir, pkg, "CHANGELOG.md");
+    if (!fs.existsSync(changelogPath)) {
+      console.log(`No changelog found for package ${pkg}. Skipping.`);
+      lastVersions[pkg] = null;
+      return;
+    }
+
+    const changelog = fs.readFileSync(changelogPath, "utf-8");
+    const firstVersion = extractLatestVersion(changelog);
+
+    if (!firstVersion) {
+      console.log(`No version found in changelog for package ${pkg}. Skipping.`);
+      lastVersions[pkg] = null;
+      return;
+    }
+
+    lastVersions[pkg] = firstVersion;
   });
-}
+};
+
 
 const prepareOutputFiles = (packages, packagesDir) => {
   let teamsHtml = "<html><body>";
@@ -82,23 +87,24 @@ const prepareOutputFiles = (packages, packagesDir) => {
     const changelog = fs.readFileSync(changelogPath, "utf-8");
     const latestChanges = extractChanges(changelog, lastVersions[pkg]);
 
-    if (latestChanges && latestChanges.trim()) {
-      hasChanges = true;
-      let htmlContent = marked.parse(latestChanges);
-      const pkgName = capitalize(pkg);
-
-      htmlContent = htmlContent.replace(/<h2>(.*?)<\/h2>\s*<h3>(.*?)<\/h3>/g, "<h3>$1 $2</h3>");
-
-      teamsHtml += `<h2>${pkgName} Package</h2>${htmlContent}<br />`;
-
-      console.log(`Included changelog for package: ${pkgName}`);
-
-      const latestVersion = extractLatestVersion(changelog);
-      if (latestVersion) {
-        lastVersions[pkg] = latestVersion;
-      }
-    } else {
+    if (!latestChanges?.trim()) {
       console.log(`No new changes for package: ${pkg}. Skipping.`);
+      return;
+    }
+
+    hasChanges = true;
+    let htmlContent = marked.parse(latestChanges);
+    const pkgName = capitalize(pkg);
+
+    htmlContent = htmlContent.replace(/<h2>(.*?)<\/h2>\s*<h3>(.*?)<\/h3>/g, "<h3>$1 $2</h3>");
+
+    teamsHtml += `<h2>${pkgName} Package</h2>${htmlContent}<br />`;
+
+    console.log(`Included changelog for package: ${pkgName}`);
+
+    const latestVersion = extractLatestVersion(changelog);
+    if (latestVersion) {
+      lastVersions[pkg] = latestVersion;
     }
   });
 
@@ -117,13 +123,17 @@ const saveOutputFiles = (teamsHtml, hasChanges) => {
 }
 
 const setGitHubActionsOutputs = (hasChanges, lastVersions) => {
-  console.log("::set-output name=has_changes::" + hasChanges.toString());
-  if (hasChanges) {
-    const latestVersionsString = Object.entries(lastVersions)
-      .map(([pkg, version]) => `${pkg}:${version}`)
-      .join(",");
-    console.log("::set-output name=latest_versions::" + latestVersionsString);
+  if (!hasChanges) {
+    return;
   }
+
+  console.log("has_changes" + hasChanges.toString() + " >>$GITHUB_OUTPUT");
+
+  const latestVersionsString = Object.entries(lastVersions)
+    .map(([pkg, version]) => `${pkg}:${version}`)
+    .join(",");
+
+  console.log("latest_versions" + latestVersionsString + " >>$GITHUB_OUTPUT");
 }
 
 const cleanup = (repoDir) => {
