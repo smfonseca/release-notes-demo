@@ -128,13 +128,13 @@ const setGitHubActionsOutputs = (hasChanges, lastVersions) => {
     return;
   }
 
-  console.log("has_changes: " + hasChanges.toString() + ` >>$${GITHUB_OUTPUT}`);
+  console.log("has_changes=" + hasChanges.toString() + ` >>$${GITHUB_OUTPUT}`);
 
   const latestVersionsString = Object.entries(lastVersions)
     .map(([pkg, version]) => `${pkg}:${version}`)
     .join(",");
 
-  console.log("latest_versions: " + latestVersionsString + ` >>$${GITHUB_OUTPUT}`);
+  console.log("latest_versions=" + latestVersionsString + ` >>$${GITHUB_OUTPUT}`);
 }
 
 const cleanup = (repoDir) => {
