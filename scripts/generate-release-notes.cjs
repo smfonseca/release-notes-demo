@@ -8,6 +8,7 @@ const REPO_URL = "https://github.com/solid-design-system/solid";
 const REPO_DIR = "./repo";
 const OUTPUT_DIR = "./output";
 const LATEST_VERSIONS = process.env.LATEST_VERSIONS;
+const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
 
 let lastVersions = {};
 
@@ -127,13 +128,13 @@ const setGitHubActionsOutputs = (hasChanges, lastVersions) => {
     return;
   }
 
-  console.log("has_changes" + hasChanges.toString() + " >>$GITHUB_OUTPUT");
+  console.log("has_changes: " + hasChanges.toString() + ` >>$${GITHUB_OUTPUT}`);
 
   const latestVersionsString = Object.entries(lastVersions)
     .map(([pkg, version]) => `${pkg}:${version}`)
     .join(",");
 
-  console.log("latest_versions" + latestVersionsString + " >>$GITHUB_OUTPUT");
+  console.log("latest_versions: " + latestVersionsString + ` >>$${GITHUB_OUTPUT}`);
 }
 
 const cleanup = (repoDir) => {
