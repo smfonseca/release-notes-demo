@@ -124,17 +124,20 @@ const saveOutputFiles = (teamsHtml, hasChanges) => {
 }
 
 const setGitHubActionsOutputs = (hasChanges, lastVersions) => {
-  if (!hasChanges) {
+  if (!GITHUB_OUTPUT) {
+    console.error('GITHUB_OUTPUT environment variable is not set.');
     return;
   }
 
-  console.log("has_changes=" + hasChanges.toString() + ` >>$${GITHUB_OUTPUT}`);
+  fs.appendFileSync(GITHUB_OUTPUT, `has_changes=${hasChanges.toString()}\n`);
 
-  const latestVersionsString = Object.entries(lastVersions)
+  if (hasChanges) {
+    const latestVersionsString = Object.entries(lastVersions)
     .map(([pkg, version]) => `${pkg}:${version}`)
     .join(",");
 
-  console.log("latest_versions=" + latestVersionsString + ` >>$${GITHUB_OUTPUT}`);
+    fs.appendFileSync(GITHUB_OUTPUT, `latest_versions=${latestVersionsString}\n`);
+  }
 }
 
 const cleanup = (repoDir) => {
