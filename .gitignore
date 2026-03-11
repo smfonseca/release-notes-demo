@@ -1,6 +1,7 @@
 /node_modules
 /repo
 /output
+/scripts/old_generate.cjs
 
 .DS_Store
 .env
